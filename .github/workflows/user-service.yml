@@ -1,24 +1,26 @@
 name: user-service-deployment
+
 on:
   push:
     branches:
       - main
     paths:
-      - '.backend/user-service/**'
+      - 'backend/user-service/**'
       - 'k8s/user-service/**'
       - '.github/workflows/user-service.yml'
   workflow_dispatch:
 
 env:
-    ACR_NAME: eshopacr7894
-    ACR_LOGIN_SERVER: eshopacr7894.azurecr.io
-    IMAGE_NAME: user-service
-    AKS_CLUSTER_NAME: eshop-aks7894
-    AKS_RESOURCE_GROUP: eshop-rg
+  ACR_NAME: eshopacr7894
+  ACR_LOGIN_SERVER: eshopacr7894.azurecr.io
+  IMAGE_NAME: user-service
+  AKS_CLUSTER_NAME: eshop-aks7894
+  AKS_RESOURCE_GROUP: eshop-rg
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
 
@@ -37,8 +39,8 @@ jobs:
       - name: Build and push user-service image to ACR
         uses: docker/build-push-action@v6
         with:
-          context: ./user-service
-          file: ./user-service/Dockerfile
+          context: ./backend/user-service
+          file: ./backend/user-service/Dockerfile
           push: true
           tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
 
@@ -53,4 +55,6 @@ jobs:
         run: |
           kubectl apply -f k8s/user-service/deployment.yaml
           kubectl apply -f k8s/user-service/service.yaml
-          kubectl get svc --all-namespaces
+          kubectl rollout restart deployment/user-service
+          kubectl rollout status deployment/user-service --timeout=300s
+          kubectl get svc user-service
