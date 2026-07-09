@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'payment-service/**'
+      - 'backend/payment-service/**'
       - 'k8s/payment-service/**'
       - '.github/workflows/payment-service.yml'
   workflow_dispatch:
@@ -44,7 +44,7 @@ jobs:
 
       - name: Run Maven tests
         run: |
-          cd payment-service
+          cd backend/payment-service
           mvn clean test
 
       - name: Azure login
@@ -58,8 +58,8 @@ jobs:
       - name: Build and push payment-service image to ACR
         uses: docker/build-push-action@v6
         with:
-          context: ./payment-service
-          file: ./payment-service/Dockerfile
+          context: ./backend/payment-service
+          file: ./backend/payment-service/Dockerfile
           push: true
           tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
 
@@ -74,4 +74,4 @@ jobs:
         run: |
           kubectl apply -f k8s/payment-service/deployment.yaml
           kubectl apply -f k8s/payment-service/service.yaml
-          kubectl get svc --all-namespaces
+          kubectl get svc payment-service
