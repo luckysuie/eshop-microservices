@@ -1,10 +1,11 @@
 name: order-service-deployment
+
 on:
   push:
     branches:
       - main
     paths:
-      - 'order-service/**'
+      - 'backend/order-service/**'
       - 'k8s/order-service/**'
       - '.github/workflows/order-service.yml'
   workflow_dispatch:
@@ -17,8 +18,9 @@ env:
   AKS_RESOURCE_GROUP: eshop-rg
 
 jobs:
- build-and-deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
 
@@ -37,8 +39,8 @@ jobs:
       - name: Build and push order-service image to ACR
         uses: docker/build-push-action@v6
         with:
-          context: ./order-service
-          file: ./order-service/Dockerfile
+          context: ./backend/order-service
+          file: ./backend/order-service/Dockerfile
           push: true
           tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
 
@@ -53,6 +55,4 @@ jobs:
         run: |
           kubectl apply -f k8s/order-service/deployment.yaml
           kubectl apply -f k8s/order-service/service.yaml
-          kubectl get svc --all-namespaces
-
-
+          kubectl get svc order-service
