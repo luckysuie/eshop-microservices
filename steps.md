@@ -264,6 +264,23 @@ In AKS, microservices communicate through APIs using Kubernetes service names in
 
 Note: Before going to the next step, make sure the keyvault name in the application.properties file of the microservices matches with the keyvault name created in step 5 if not please update the application.properties file of the microservices with the correct keyvault name.
 
+### Create an ACR and AKS cluster using Azure CLI or portal
+1. Create an Azure Container Registry (ACR) in the same resource group with admin access enabled 
+2. Create an AKS cluster in the same resource group created in step 2 and attach the ACR created in step 1 to the AKS cluster.
+
+### service principal creation and role assignment
+1. Create a service principal and store the appId, password, and tenant in variables.
+2. Assign the service principal as contributor role at subscription level
+3. store the clientId, clientSecret, subscriptionId, and tenantId in the github secrets of the forked repo as variable AZURE_CREDENTIALS in the below format:
+```json
+{
+  "clientId": "<service-principal-appId>",
+  "clientSecret": "<service-principal-password>",
+  "subscriptionId": "<subscription-id>",
+  "tenantId": "<tenant-id>"
+}
+```
+
 ## Writing Yaml files(deployment and service) for frontend and backend microservices
 1. Navigate to the frontend folder insde the k8s folder and write the deployment and service yaml files with below hints
    deployment.yaml

@@ -4,7 +4,7 @@ on:
     branches:
       - main
     paths:
-      - 'user-service/**'
+      - 'backend/user-service/**'
       - 'k8s/user-service/**'
       - '.github/workflows/user-service.yml'
   workflow_dispatch:

@@ -33,6 +33,18 @@ az role assignment create --assignee $VM_IDENTITY_PRINCIPAL_ID --role "Key Vault
 az role assignment list --assignee $VM_IDENTITY_PRINCIPAL_ID --scope $KV_ID --output table ## Verify that the managed identity has been granted access to the Key Vault
 
 
+##Create a service principal ID and store it in GitHub secrets for GitHub Actions to access Azure resources
+az ad sp create-for-rbac --name "eshop-github-actions" --role contributor --scopes /subscriptions/<subscription-id> --sdk-auth  ## Replace <subscription-id> with your actual Azure subscription ID
+az ad sp show --id <service-principal-id>  ## Replace <service-principal-id> with the appId of the service principal created in the previous step to get the details of the service principal
+
+{
+  "clientId": "your-client-id",
+  "clientSecret": "your-client-secret",
+  "subscriptionId": "your-subscription-id",
+  "tenantId": "yourtenantid"
+}
+
+
 ## Sign in to the VM using SSH
 open command prompt or terminal and run the following command to SSH into the VM:
 ssh azureuser@<VM_PUBLIC_IP>
