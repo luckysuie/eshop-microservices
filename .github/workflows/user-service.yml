@@ -55,6 +55,4 @@ jobs:
         run: |
           kubectl apply -f k8s/user-service/deployment.yaml
           kubectl apply -f k8s/user-service/service.yaml
-          kubectl rollout restart deployment/user-service
-          kubectl rollout status deployment/user-service --timeout=300s
           kubectl get svc user-service
