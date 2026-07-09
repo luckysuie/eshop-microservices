@@ -19,7 +19,7 @@
 
     <properties>
         <java.version>17</java.version>
-        <spring-cloud-azure.version>5.10.0</spring-cloud-azure.version>
+        <spring-cloud-azure.version>5.18.0</spring-cloud-azure.version>
     </properties>
 
     <!-- Spring Cloud Azure BOM: manages versions of all Azure SDK libraries -->
@@ -85,6 +85,12 @@
         <dependency>
             <groupId>com.azure.spring</groupId>
             <artifactId>spring-cloud-azure-starter-keyvault-secrets</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-identity</artifactId>
+            <version>1.13.3</version>
         </dependency>
 
         <!-- Spring Boot Test -->
