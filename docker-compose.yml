@@ -1,0 +1,60 @@
+version: '3.8'
+
+# All services share the "shopease-net" network so nginx can resolve
+# service hostnames (user-service, product-service, etc.) via Docker DNS.
+
+services:
+
+  user-service:
+    image: user-service:latest
+    container_name: user-service
+    ports:
+      - "8081:8081"
+    networks:
+      - shopease-net
+    restart: unless-stopped
+
+  product-service:
+    image: product-service:latest
+    container_name: product-service
+    ports:
+      - "8082:8082"
+    networks:
+      - shopease-net
+    restart: unless-stopped
+
+  order-service:
+    image: order-service:latest
+    container_name: order-service
+    ports:
+      - "8083:8083"
+    networks:
+      - shopease-net
+    restart: unless-stopped
+
+  payment-service:
+    image: payment-service:latest
+    container_name: payment-service
+    ports:
+      - "8084:8084"
+    networks:
+      - shopease-net
+    restart: unless-stopped
+
+  frontend:
+    image: frontend:latest
+    container_name: frontend
+    ports:
+      - "3000:80"
+    networks:
+      - shopease-net
+    depends_on:
+      - user-service
+      - product-service
+      - order-service
+      - payment-service
+    restart: unless-stopped
+
+networks:
+  shopease-net:
+    driver: bridge

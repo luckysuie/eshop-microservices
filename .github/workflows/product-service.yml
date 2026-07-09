@@ -1,0 +1,84 @@
+name: product-service-deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'product-service/**'
+      - 'k8s/product-service/**'
+      - '.github/workflows/product-service.yml'
+  workflow_dispatch:
+
+env:
+  ACR_NAME: eshopacr7894
+  ACR_LOGIN_SERVER: eshopacr7894.azurecr.io
+  IMAGE_NAME: product-service
+  AKS_CLUSTER_NAME: eshop-aks7894
+  AKS_RESOURCE_GROUP: eshop-rg
+
+jobs:
+  test:
+    name: Test product-service
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        java: [17, 21]
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+
+      - name: Run Maven tests
+        run: |
+          cd backend/product-service
+          mvn clean test
+
+  build-and-deploy:
+    name: Build and deploy product-service
+    needs: test
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Log in to Azure Container Registry
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and push product-service image to ACR
+        uses: docker/build-push-action@v6
+        with:
+          context: ./product-service
+          file: ./product-service/Dockerfile
+          push: true
+          tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v4
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          resource-group: ${{ env.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+
+      - name: Deploy product-service to AKS
+        run: |
+          kubectl apply -f k8s/product-service/deployment.yaml
+          kubectl apply -f k8s/product-service/service.yaml
+          kubectl get svc --all-namespaces

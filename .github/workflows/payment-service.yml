@@ -1,0 +1,77 @@
+name: payment-service-deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'payment-service/**'
+      - 'k8s/payment-service/**'
+      - '.github/workflows/payment-service.yml'
+  workflow_dispatch:
+
+env:
+  ACR_NAME: eshopacr7894
+  ACR_LOGIN_SERVER: eshopacr7894.azurecr.io
+  IMAGE_NAME: payment-service
+  AKS_CLUSTER_NAME: eshop-aks7894
+  AKS_RESOURCE_GROUP: eshop-rg
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            maven-${{ runner.os }}-
+
+      - name: Run Maven tests
+        run: |
+          cd payment-service
+          mvn clean test
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Log in to Azure Container Registry
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and push payment-service image to ACR
+        uses: docker/build-push-action@v6
+        with:
+          context: ./payment-service
+          file: ./payment-service/Dockerfile
+          push: true
+          tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v4
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          resource-group: ${{ env.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+
+      - name: Deploy payment-service to AKS
+        run: |
+          kubectl apply -f k8s/payment-service/deployment.yaml
+          kubectl apply -f k8s/payment-service/service.yaml
+          kubectl get svc --all-namespaces
