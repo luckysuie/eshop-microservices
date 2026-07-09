@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'product-service/**'
+      - 'backend/product-service/**'
       - 'k8s/product-service/**'
       - '.github/workflows/product-service.yml'
   workflow_dispatch:
@@ -81,4 +81,4 @@ jobs:
         run: |
           kubectl apply -f k8s/product-service/deployment.yaml
           kubectl apply -f k8s/product-service/service.yaml
-          kubectl get svc --all-namespaces
+          kubectl get svc product-service
